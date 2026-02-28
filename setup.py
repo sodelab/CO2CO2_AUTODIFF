@@ -25,6 +25,15 @@ class MakeBuild(Command):
         if os.path.exists(src_lib):
             shutil.copy(src_lib, os.path.join(pkg_dir, "libCO2CO2.so"))
 
+    def get_source_files(self):
+        return []
+
+    def get_outputs(self):
+        return []
+
+    def get_output_mapping(self):
+        return {}
+
 class BinaryDistribution(Distribution):
     """Force platform-specific distribution (platlib, not purelib)."""
     def has_ext_modules(self):
