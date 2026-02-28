@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess
 import shutil
-from setuptools import setup, find_packages, Command
+from setuptools import setup, find_packages, Command, Distribution
 from wheel.bdist_wheel import bdist_wheel
 
 class MakeBuild(Command):
@@ -24,6 +24,11 @@ class MakeBuild(Command):
         src_lib = os.path.join(cwd, "libCO2CO2.so")
         if os.path.exists(src_lib):
             shutil.copy(src_lib, os.path.join(pkg_dir, "libCO2CO2.so"))
+
+class BinaryDistribution(Distribution):
+    """Force platform-specific distribution (platlib, not purelib)."""
+    def has_ext_modules(self):
+        return True
 
 class BdistWheelPlatform(bdist_wheel):
     """Mark the wheel as platform-specific (not pure Python)."""
@@ -54,6 +59,7 @@ setup(
     package_data={
         "co2_potential": ["libCO2CO2.so"],
     },
+    distclass=BinaryDistribution,
     cmdclass={
         "build_ext": MakeBuild,
         "bdist_wheel": BdistWheelPlatform,

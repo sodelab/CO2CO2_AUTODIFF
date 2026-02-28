@@ -7,3 +7,5 @@ build/
 wheelhouse/
 venv/
 .DS_Store
+src/*.so
+src/*.o

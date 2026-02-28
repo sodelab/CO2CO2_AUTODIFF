@@ -4,14 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
 build = "cp311-* cp312-* cp313-*"
-skip = "*-musllinux_* *-win32 *-manylinux_i686 *-pp*"
+skip = "*-musllinux_* *-win32 *-manylinux_i686"
 test-command = "python -c \"import co2_potential; print(co2_potential.get_version())\""
 
 [tool.cibuildwheel.linux]
 before-build = "cd src && make clean && make"
+repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
 
 [tool.cibuildwheel.macos]
 before-build = "cd src && make clean && make"
+repair-wheel-command = "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
 
 [tool.poetry.scripts]
 co2-benchmark = "co2_potential.benchmark:main"
