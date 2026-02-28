@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.o
+*.egg-info/
+dist/
+build/
+wheelhouse/
+venv/
+.DS_Store

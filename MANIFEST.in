@@ -1,0 +1,5 @@
+include LICENSE
+include README.md
+include pyproject.toml
+recursive-include co2_potential *.py *.so *.dylib
+recursive-include src *.cpp *.h *.o Makefile
