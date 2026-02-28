@@ -68,6 +68,9 @@ setup(
     package_data={
         "co2_potential": ["libCO2CO2.so"],
     },
+    install_requires=[
+        "numpy",
+    ],
     distclass=BinaryDistribution,
     cmdclass={
         "build_ext": MakeBuild,
