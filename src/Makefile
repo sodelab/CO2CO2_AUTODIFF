@@ -6,7 +6,7 @@
 2B = mbCO2CO2
 
 CXX = c++
-CXXFLAGS = -O3 -fPIC -std=c++17
+CXXFLAGS = -O2 -fPIC -std=c++17
 
 # Detect OS
 UNAME_S := $(shell uname -s)
