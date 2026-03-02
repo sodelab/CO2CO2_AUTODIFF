@@ -41,32 +41,12 @@ jobs:
       - name: Install dependencies
         run: pip install setuptools wheel numpy
       - name: Build shared library
-        run: cd src && make clean && make OPT=-O1
+        run: cd src && make clean && make OPT=-O2
       - name: Build wheel
         run: pip wheel . --no-deps -w wheelhouse
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-macos-arm64
-          path: wheelhouse/*.whl
-
-  build_macos_x86:
-    name: Build macOS x86_64 wheel
-    runs-on: macos-13
-    timeout-minutes: 360
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Install dependencies
-        run: pip install setuptools wheel numpy
-      - name: Build shared library
-        run: cd src && make clean && make OPT=-O1
-      - name: Build wheel
-        run: pip wheel . --no-deps -w wheelhouse
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheels-macos-x86
           path: wheelhouse/*.whl
 
   build_sdist:
@@ -87,7 +67,7 @@ jobs:
           path: dist/*.tar.gz
 
   upload_pypi:
-    needs: [build_linux, build_macos_arm64, build_macos_x86, build_sdist]
+    needs: [build_linux, build_macos_arm64, build_sdist]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     permissions:

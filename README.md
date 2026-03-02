@@ -1,24 +1,30 @@
 # CO₂–CO₂ Potential Energy Library
 
-High-performance C++ routines for computing CO₂ dimer potentials (1-body, 2-body, SAPT-S), exposed to Python via a ctypes wrapper (and optionally a pybind11 module).
+High-performance C++ routines for computing CO₂ dimer potentials (1-body, 2-body, SAPT-S), exposed to Python via a ctypes wrapper.
 
 ## Repository Layout
 
 ```
-CO2_AUTODIFF/                    # Project root
+CO2CO2_AUTODIFF/                 # Project root
 ├── src/                         # All C++ source + Makefile
 │   ├── mbCO2CO2.cpp             # C-API exports (energies, grads, Hessians)
 │   ├── mbCO2CO2.h               # Function declarations
 │   ├── x1b.cpp/.h               # 1-body poly routines
 │   ├── x2b.cpp/.h               # 2-body poly routines
-│   ├── sapt-s.cpp/.h            # SAPT-S routines
+│   ├── sapt-s.cpp               # SAPT-S routines
 │   ├── poly-*.cpp/.h            # polynomial basis eval
-│   └── Makefile                 # builds `libCO2CO2.so`
+│   ├── autodiff/                # bundled autodiff headers
+│   ├── Eigen/                   # bundled Eigen headers
+│   └── Makefile                 # builds libCO2CO2.so
 ├── co2_potential/               # Python package
 │   ├── __init__.py
-│   ├── libCO2CO2.so             # copied in by setup.py
-│   └── wrapper.py               # ctypes wrapper + convenience functions
-├── setup.py                     # pip install / build‐ext hook
+│   ├── libCO2CO2.so             # copied in by Makefile
+│   ├── wrapper.py               # ctypes wrapper + convenience functions
+│   └── benchmark.py             # benchmarking script
+├── .github/
+│   └── workflows/
+│       └── wheels.yml           # CI: build wheels + upload to PyPI
+├── setup.py                     # pip install / build-ext hook
 ├── pyproject.toml               # PEP 517 build config
 ├── MANIFEST.in                  # include shared lib & .py files
 ├── README.md
@@ -27,42 +33,35 @@ CO2_AUTODIFF/                    # Project root
 
 ## Installation
 
-### 1. Prerequisites
-
-- C++ compiler (GCC/Clang) supporting C++17  
-- Python 3.6+ and pip  
-- (Optional) [`ccache`](https://ccache.dev/) for faster recompiles  
-
-### 2. Install via pip
-
-From project root:
+### Linux (x86_64) and macOS (Apple Silicon)
 
 ```bash
-pip install .
+pip install co2_potential
 ```
 
-This will:
+### macOS (Intel x86_64)
 
-1. Invoke the custom `build_ext` command in `setup.py`  
-2. `cd src-autodiff && make clean && make`  
-3. Copy `libCO2CO2.so` into the `co2_potential/` package  
-4. Build & install the Python wheel
-
-### 3. Manual Build (if needed)
-
-If you want to rebuild by hand:
+Pre-built wheels are not available for Intel Macs. Install from source:
 
 ```bash
-cd src
-make clean
-make -j$(sysctl -n hw.ncpu)
-# or add OP=-O2 in Makefile for faster debug builds
+pip install co2_potential --no-binary co2_potential
 ```
 
-Then copy the resulting `libCO2CO2.so` into the Python package:
+This requires a C++ compiler (`clang`/`g++`) and may take some time to compile.
+
+### Building from Source
 
 ```bash
-cp libCO2CO2.so ../co2_potential/
+git clone https://github.com/sodelab/CO2CO2_AUTODIFF.git
+cd CO2CO2_AUTODIFF
+cd src && make clean && make && cd ..
+pip install -e .
+```
+
+On macOS, to build a universal binary (x86_64 + arm64):
+
+```bash
+cd src && make clean && make UNIVERSAL=1 && cd ..
 ```
 
 ## Usage
@@ -82,18 +81,11 @@ xyz = np.array([
 ], dtype=np.double)
 
 E1 = p1b(xyz)        # 1-body energy
-E2_4 = p2b_4(xyz)    # 2-body 4th‐order
-E2_5 = p2b_5(xyz)    # 2-body 5th‐order
+E2_4 = p2b_4(xyz)    # 2-body 4th-order
+E2_5 = p2b_5(xyz)    # 2-body 5th-order
 Es = sapt(xyz)       # SAPT-S energy
 
 print(f"E1 = {E1:.6f}, E2(5) = {E2_5:.6f}, SAPT = {Es:.6f}")
-```
-
-If you built a pybind11 module under `co2_potential/python/module.cpp`, simply:
-
-```python
-import co2_potential
-# co2_potential.p1b, co2_potential.p2b_5, co2_potential.sapt, …
 ```
 
 ## Functionality
@@ -141,8 +133,7 @@ The core computations are implemented in C++ for performance and exposed to Pyth
 
 ## Benchmarking
 
-This package includes a benchmarking script, `co2_potential/benchmark.py`, which tests the accuracy and performance of the CO₂ potential functions (energies, gradients, and Hessians) against reference values.  
-The script can be run directly and supports command-line flags to test specific components:
+This package includes a benchmarking script which tests the accuracy and performance of the CO₂ potential functions against reference values:
 
 ```bash
 python -m co2_potential.benchmark --all         # Test all (default)
@@ -156,6 +147,14 @@ python -m co2_potential.benchmark --sapt        # Test only sapt functions
 ```
 
 The benchmark compares computed results to hard-coded reference values (with units: energies in kcal/mol, gradients in kcal/mol/angstrom, and Hessians in kcal/mol/angstrom²) and reports pass/fail status for each test.
+
+## Supported Platforms
+
+| Platform | Architecture          | Wheel Available      |
+|----------|-----------------------|--------------------- |
+| Linux    | x86_64                | Yes                  |
+| macOS    | arm64 (Apple Silicon) | Yes                  |
+| macOS    | x86_64 (Intel)        | Build from source    |
 
 ## Contributing
 
