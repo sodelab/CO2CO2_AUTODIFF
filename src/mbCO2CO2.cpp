@@ -77,7 +77,7 @@ DLLEXPORT int get_sapt_dim()  { return 18; }
 
 // Library version
 DLLEXPORT const char* get_version() {
-    return "CO2CO2_AUTODIFF 0.4.4 (2026-02-26)";
+    return "CO2CO2_AUTODIFF 0.4.5 (2026-03-02)";
 }
 
 } // extern "C"

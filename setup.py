@@ -56,7 +56,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="co2_potential",
-    version="0.4.4",
+    version="0.4.5",
     author="Olaseni Sode",
     license="MIT",
     author_email="osode@calstatela.edu",
