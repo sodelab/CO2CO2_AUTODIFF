@@ -3,8 +3,10 @@ from .wrapper import (
     p1b, p1b_gradient, p1b_hessian_rev, p1b_hessian_fwd,
     p2b_4, p2b_gradient_4, p2b_hessian_4_rev, p2b_hessian_4_fwd,
     p2b_5, p2b_gradient_5, p2b_hessian_5_rev, p2b_hessian_5_fwd,
-    p2b, p2b_gradient, p2b_hessian_rev, p2b_hessian_fwd,  # Default p2b functions
-    sapt, sapt_gradient, sapt_hessian_rev, sapt_hessian_fwd
+    p2b, p2b_gradient, p2b_hessian_rev, p2b_hessian_fwd,
+    sapt, sapt_gradient, sapt_hessian_rev, sapt_hessian_fwd,
+    sapt_sr, sapt_sr_gradient, sapt_sr_hessian_rev, sapt_sr_hessian_fwd,   # NEW
+    sapt_lr, sapt_lr_gradient, sapt_lr_hessian_rev, sapt_lr_hessian_fwd,   # NEW
 )
 
 __version__ = get_version()
@@ -13,6 +15,8 @@ __all__ = [
     "p1b", "p1b_gradient", "p1b_hessian_rev", "p1b_hessian_fwd",
     "p2b_4", "p2b_gradient_4", "p2b_hessian_4_rev", "p2b_hessian_4_fwd",
     "p2b_5", "p2b_gradient_5", "p2b_hessian_5_rev", "p2b_hessian_5_fwd",
-    "p2b", "p2b_gradient", "p2b_hessian_rev", "p2b_hessian_fwd",  # Default p2b functions
-    "sapt", "sapt_gradient", "sapt_hessian_rev", "sapt_hessian_fwd"
+    "p2b", "p2b_gradient", "p2b_hessian_rev", "p2b_hessian_fwd",
+    "sapt", "sapt_gradient", "sapt_hessian_rev", "sapt_hessian_fwd",
+    "sapt_sr", "sapt_sr_gradient", "sapt_sr_hessian_rev", "sapt_sr_hessian_fwd",   # NEW
+    "sapt_lr", "sapt_lr_gradient", "sapt_lr_hessian_rev", "sapt_lr_hessian_fwd",   # NEW
 ]

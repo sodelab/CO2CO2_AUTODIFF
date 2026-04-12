@@ -141,13 +141,25 @@ inline double xC8(const double* A, const double* B,
 
 
 //-----------------------------------------------------------------------------
-// 5) Full SAPT‐S dimer energy
-//    Combines exponential, charge–charge, C6, C8 terms over all site pairs
+// 5) Full SAPT‐S dimer energy  (SR + LR combined)
 //-----------------------------------------------------------------------------
 template<typename T>
 T sapt_s_t(const T* crd)
 {
-    // Convert constants to type T
+    return sapt_sr_t<T>(crd) + sapt_lr_t<T>(crd);
+}
+
+double sapt_s(const double* crd)
+{
+    return sapt_s_t<double>(crd);
+}
+
+//-----------------------------------------------------------------------------
+// 6) Short-range: exponential repulsion only
+//-----------------------------------------------------------------------------
+template<typename T>
+T sapt_sr_t(const T* crd)
+{
     const T alpha_OO = T(1.1210441e1);
     const T alpha_OC = T(1.1333682e1);
     const T alpha_CC = T(1.1399839e1);
@@ -155,52 +167,16 @@ T sapt_s_t(const T* crd)
     const T beta_OO = T(4.0202795);
     const T beta_OC = T(4.5074401);
     const T beta_CC = T(5.0932632);
-    
-    const T qO = T(2.3786535e-1*18.22262373);
-    const T qC = T(1.6316722*18.22262373);
-    const T qM = T(-1.0537015*18.22262373);
-    
-    const T delta_1_OO = T(1.4968485);
-    const T delta_1_OC = T(1.8797629);
-    const T delta_1_CC = T(2.1958809);
-    const T delta_1_OM = T(1.9648279);
-    const T delta_1_CM = T(2.6032461);
-    const T delta_1_MM = T(5.2350982);
-    
-    const T delta_6_OO = T(2.5924278);
-    const T delta_6_OC = T(1.8139783);
-    const T delta_6_CC = T(1.7584847);
-    
-    const T delta_8_OO = T(1.0769328);
-    const T delta_8_OC = T(6.7472291e-1);
-    const T delta_8_CC = T(3.0176726);
-    
-    const T C6_OO = T(1.0426642e3);
-    const T C6_OC = T(-1.3834479e3);
-    const T C6_CC = T(3.4808543e3);
-    
-    const T C8_OO = T(-1.3516797e4);
-    const T C8_OC = T(2.0217414e4);
-    const T C8_CC = T(-2.6899552e4);
-    
-    // atom coords
-    const T *Ca   = crd +  0, *Oa1 = crd +  3, *Oa2 = crd +  6;
-    const T *Cb   = crd +  9, *Ob1 = crd + 12, *Ob2 = crd + 15;
 
-    // build pseudo‐sites
-    T Ba1[3], Ba2[3], Bb1[3], Bb2[3];
-    site_t<T>(Ca, Oa1, Ba1);
-    site_t<T>(Ca, Oa2, Ba2);
-    site_t<T>(Cb, Ob1, Bb1);
-    site_t<T>(Cb, Ob2, Bb2);
+    const T *Ca  = crd +  0, *Oa1 = crd +  3, *Oa2 = crd +  6;
+    const T *Cb  = crd +  9, *Ob1 = crd + 12, *Ob2 = crd + 15;
 
-    // exp
     const T OO_exp =
             exponential_t<T>(Oa1, Ob1, alpha_OO, beta_OO)
           + exponential_t<T>(Oa1, Ob2, alpha_OO, beta_OO)
           + exponential_t<T>(Oa2, Ob1, alpha_OO, beta_OO)
           + exponential_t<T>(Oa2, Ob2, alpha_OO, beta_OO);
-    
+
     const T OC_exp =
             exponential_t<T>(Oa1, Cb, alpha_OC, beta_OC)
           + exponential_t<T>(Oa2, Cb, alpha_OC, beta_OC)
@@ -209,23 +185,72 @@ T sapt_s_t(const T* crd)
 
     const T CC_exp =
             exponential_t<T>(Ca, Cb, alpha_CC, beta_CC);
-    
-    // charge-charge
+
+    return OO_exp + OC_exp + CC_exp;
+}
+
+double sapt_sr(const double* crd)
+{
+    return sapt_sr_t<double>(crd);
+}
+
+//-----------------------------------------------------------------------------
+// 7) Long-range: QQ + C6 + C8 only
+//-----------------------------------------------------------------------------
+template<typename T>
+T sapt_lr_t(const T* crd)
+{
+    const T qO = T(2.3786535e-1*18.22262373);
+    const T qC = T(1.6316722*18.22262373);
+    const T qM = T(-1.0537015*18.22262373);
+
+    const T delta_1_OO = T(1.4968485);
+    const T delta_1_OC = T(1.8797629);
+    const T delta_1_CC = T(2.1958809);
+    const T delta_1_OM = T(1.9648279);
+    const T delta_1_CM = T(2.6032461);
+    const T delta_1_MM = T(5.2350982);
+
+    const T delta_6_OO = T(2.5924278);
+    const T delta_6_OC = T(1.8139783);
+    const T delta_6_CC = T(1.7584847);
+
+    const T delta_8_OO = T(1.0769328);
+    const T delta_8_OC = T(6.7472291e-1);
+    const T delta_8_CC = T(3.0176726);
+
+    const T C6_OO = T(1.0426642e3);
+    const T C6_OC = T(-1.3834479e3);
+    const T C6_CC = T(3.4808543e3);
+
+    const T C8_OO = T(-1.3516797e4);
+    const T C8_OC = T(2.0217414e4);
+    const T C8_CC = T(-2.6899552e4);
+
+    const T *Ca  = crd +  0, *Oa1 = crd +  3, *Oa2 = crd +  6;
+    const T *Cb  = crd +  9, *Ob1 = crd + 12, *Ob2 = crd + 15;
+
+    T Ba1[3], Ba2[3], Bb1[3], Bb2[3];
+    site_t<T>(Ca, Oa1, Ba1);
+    site_t<T>(Ca, Oa2, Ba2);
+    site_t<T>(Cb, Ob1, Bb1);
+    site_t<T>(Cb, Ob2, Bb2);
+
     const T OO_QQ =
             qq_t<T>(Oa1, Ob1, delta_1_OO, qO, qO)
           + qq_t<T>(Oa1, Ob2, delta_1_OO, qO, qO)
           + qq_t<T>(Oa2, Ob1, delta_1_OO, qO, qO)
           + qq_t<T>(Oa2, Ob2, delta_1_OO, qO, qO);
-    
+
     const T OC_QQ =
             qq_t<T>(Oa1, Cb, delta_1_OC, qO, qC)
           + qq_t<T>(Oa2, Cb, delta_1_OC, qO, qC)
           + qq_t<T>(Ob1, Ca, delta_1_OC, qO, qC)
           + qq_t<T>(Ob2, Ca, delta_1_OC, qO, qC);
-    
+
     const T CC_QQ =
             qq_t<T>(Ca, Cb, delta_1_CC, qC, qC);
-    
+
     const T OM_QQ =
             qq_t<T>(Oa1, Bb1, delta_1_OM, qO, qM)
           + qq_t<T>(Oa1, Bb2, delta_1_OM, qO, qM)
@@ -247,208 +272,47 @@ T sapt_s_t(const T* crd)
           + qq_t<T>(Ba1, Bb2, delta_1_MM, qM, qM)
           + qq_t<T>(Ba2, Bb1, delta_1_MM, qM, qM)
           + qq_t<T>(Ba2, Bb2, delta_1_MM, qM, qM);
-    
-    // C6
+
     const T OO_C6 =
             xC6_t<T>(Oa1, Ob1, delta_6_OO, C6_OO)
           + xC6_t<T>(Oa1, Ob2, delta_6_OO, C6_OO)
           + xC6_t<T>(Oa2, Ob1, delta_6_OO, C6_OO)
           + xC6_t<T>(Oa2, Ob2, delta_6_OO, C6_OO);
-    
+
     const T OC_C6 =
             xC6_t<T>(Oa1, Cb, delta_6_OC, C6_OC)
           + xC6_t<T>(Oa2, Cb, delta_6_OC, C6_OC)
           + xC6_t<T>(Ob1, Ca, delta_6_OC, C6_OC)
           + xC6_t<T>(Ob2, Ca, delta_6_OC, C6_OC);
-    
+
     const T CC_C6 =
             xC6_t<T>(Ca, Cb, delta_6_CC, C6_CC);
-    
-    // C8
+
     const T OO_C8 =
             xC8_t<T>(Oa1, Ob1, delta_8_OO, C8_OO)
           + xC8_t<T>(Oa1, Ob2, delta_8_OO, C8_OO)
           + xC8_t<T>(Oa2, Ob1, delta_8_OO, C8_OO)
           + xC8_t<T>(Oa2, Ob2, delta_8_OO, C8_OO);
-    
+
     const T OC_C8 =
             xC8_t<T>(Oa1, Cb, delta_8_OC, C8_OC)
           + xC8_t<T>(Oa2, Cb, delta_8_OC, C8_OC)
           + xC8_t<T>(Ob1, Ca, delta_8_OC, C8_OC)
           + xC8_t<T>(Ob2, Ca, delta_8_OC, C8_OC);
-    
+
     const T CC_C8 =
             xC8_t<T>(Ca, Cb, delta_8_CC, C8_CC);
 
-    return (OO_exp + OC_exp + CC_exp
-          + OO_QQ  + OC_QQ  + CC_QQ
+    return (OO_QQ  + OC_QQ  + CC_QQ
           + OM_QQ  + CM_QQ  + MM_QQ
           - OO_C6  - OC_C6  - CC_C6
           - OO_C8  - OC_C8  - CC_C8);
 }
 
-double sapt_s(const double* crd)
+double sapt_lr(const double* crd)
 {
-    return sapt_s_t<double>(crd);
+    return sapt_lr_t<double>(crd);
 }
-
-// // Template implementation of sapt_s
-// template<typename T>
-// T sapt_s_t(const T* crd) 
-// {
-
-
-//     // Convert constants to type T
-//     const T alpha_OO = T(1.1210441e1);
-//     const T alpha_OC = T(1.1333682e1);
-//     const T alpha_CC = T(1.1399839e1);
-
-//     const T beta_OO = T(4.0202795);
-//     const T beta_OC = T(4.5074401);
-//     const T beta_CC = T(5.0932632);
-    
-//     const T qO = T(2.3786535e-1*18.22262373);
-//     const T qC = T(1.6316722*18.22262373);
-//     const T qM = T(-1.0537015*18.22262373);
-    
-//     const T delta_1_OO = T(1.4968485);
-//     const T delta_1_OC = T(1.8797629);
-//     const T delta_1_CC = T(2.1958809);
-//     const T delta_1_OM = T(1.9648279);
-//     const T delta_1_CM = T(2.6032461);
-//     const T delta_1_MM = T(5.2350982);
-    
-//     const T delta_6_OO = T(2.5924278);
-//     const T delta_6_OC = T(1.8139783);
-//     const T delta_6_CC = T(1.7584847);
-    
-//     const T delta_8_OO = T(1.0769328);
-//     const T delta_8_OC = T(6.7472291e-1);
-//     const T delta_8_CC = T(3.0176726);
-    
-//     const T C6_OO = T(1.0426642e3);
-//     const T C6_OC = T(-1.3834479e3);
-//     const T C6_CC = T(3.4808543e3);
-    
-//     const T C8_OO = T(-1.3516797e4);
-//     const T C8_OC = T(2.0217414e4);
-//     const T C8_CC = T(-2.6899552e4);
-    
-//     const T* Ca  = crd + 0;
-//     const T* Oa1 = crd + 3;
-//     const T* Oa2 = crd + 6;
-
-//     const T* Cb  = crd + 9;
-//     const T* Ob1 = crd + 12;
-//     const T* Ob2 = crd + 15;
-
-//     // Use stack-allocated arrays instead of heap for autodiff compatibility
-//     T Ba1[3], Ba2[3], Bb1[3], Bb2[3];
-
-//     site_t<T>(Ca, Oa1, Ba1);
-//     site_t<T>(Ca, Oa2, Ba2);
-//     site_t<T>(Cb, Ob1, Bb1);
-//     site_t<T>(Cb, Ob2, Bb2);
-
-
-//     // exp
-//     const T OO_exp =
-//             exponential_t<T>(Oa1, Ob1, alpha_OO, beta_OO)
-//           + exponential_t<T>(Oa1, Ob2, alpha_OO, beta_OO)
-//           + exponential_t<T>(Oa2, Ob1, alpha_OO, beta_OO)
-//           + exponential_t<T>(Oa2, Ob2, alpha_OO, beta_OO);
-    
-//     const T OC_exp =
-//             exponential_t<T>(Oa1, Cb, alpha_OC, beta_OC)
-//           + exponential_t<T>(Oa2, Cb, alpha_OC, beta_OC)
-//           + exponential_t<T>(Ob1, Ca, alpha_OC, beta_OC)
-//           + exponential_t<T>(Ob2, Ca, alpha_OC, beta_OC);
-
-//     const T CC_exp =
-//             exponential_t<T>(Ca, Cb, alpha_CC, beta_CC);
-    
-//     // charge-charge
-//     const T OO_QQ =
-//             qq_t<T>(Oa1, Ob1, delta_1_OO, qO, qO)
-//           + qq_t<T>(Oa1, Ob2, delta_1_OO, qO, qO)
-//           + qq_t<T>(Oa2, Ob1, delta_1_OO, qO, qO)
-//           + qq_t<T>(Oa2, Ob2, delta_1_OO, qO, qO);
-    
-//     const T OC_QQ =
-//             qq_t<T>(Oa1, Cb, delta_1_OC, qO, qC)
-//           + qq_t<T>(Oa2, Cb, delta_1_OC, qO, qC)
-//           + qq_t<T>(Ob1, Ca, delta_1_OC, qO, qC)
-//           + qq_t<T>(Ob2, Ca, delta_1_OC, qO, qC);
-    
-//     const T CC_QQ =
-//             qq_t<T>(Ca, Cb, delta_1_CC, qC, qC);
-    
-//     const T OM_QQ =
-//             qq_t<T>(Oa1, Bb1, delta_1_OM, qO, qM)
-//           + qq_t<T>(Oa1, Bb2, delta_1_OM, qO, qM)
-//           + qq_t<T>(Oa2, Bb1, delta_1_OM, qO, qM)
-//           + qq_t<T>(Oa2, Bb2, delta_1_OM, qO, qM)
-//           + qq_t<T>(Ob1, Ba1, delta_1_OM, qO, qM)
-//           + qq_t<T>(Ob1, Ba2, delta_1_OM, qO, qM)
-//           + qq_t<T>(Ob2, Ba1, delta_1_OM, qO, qM)
-//           + qq_t<T>(Ob2, Ba2, delta_1_OM, qO, qM);
-
-//     const T CM_QQ =
-//             qq_t<T>(Ca, Bb1, delta_1_CM, qC, qM)
-//           + qq_t<T>(Ca, Bb2, delta_1_CM, qC, qM)
-//           + qq_t<T>(Cb, Ba1, delta_1_CM, qC, qM)
-//           + qq_t<T>(Cb, Ba2, delta_1_CM, qC, qM);
-
-//     const T MM_QQ =
-//             qq_t<T>(Ba1, Bb1, delta_1_MM, qM, qM)
-//           + qq_t<T>(Ba1, Bb2, delta_1_MM, qM, qM)
-//           + qq_t<T>(Ba2, Bb1, delta_1_MM, qM, qM)
-//           + qq_t<T>(Ba2, Bb2, delta_1_MM, qM, qM);
-    
-//     // C6
-//     const T OO_C6 =
-//             xC6_t<T>(Oa1, Ob1, delta_6_OO, C6_OO)
-//           + xC6_t<T>(Oa1, Ob2, delta_6_OO, C6_OO)
-//           + xC6_t<T>(Oa2, Ob1, delta_6_OO, C6_OO)
-//           + xC6_t<T>(Oa2, Ob2, delta_6_OO, C6_OO);
-    
-//     const T OC_C6 =
-//             xC6_t<T>(Oa1, Cb, delta_6_OC, C6_OC)
-//           + xC6_t<T>(Oa2, Cb, delta_6_OC, C6_OC)
-//           + xC6_t<T>(Ob1, Ca, delta_6_OC, C6_OC)
-//           + xC6_t<T>(Ob2, Ca, delta_6_OC, C6_OC);
-    
-//     const T CC_C6 =
-//             xC6_t<T>(Ca, Cb, delta_6_CC, C6_CC);
-    
-//     // C8
-//     const T OO_C8 =
-//             xC8_t<T>(Oa1, Ob1, delta_8_OO, C8_OO)
-//           + xC8_t<T>(Oa1, Ob2, delta_8_OO, C8_OO)
-//           + xC8_t<T>(Oa2, Ob1, delta_8_OO, C8_OO)
-//           + xC8_t<T>(Oa2, Ob2, delta_8_OO, C8_OO);
-    
-//     const T OC_C8 =
-//             xC8_t<T>(Oa1, Cb, delta_8_OC, C8_OC)
-//           + xC8_t<T>(Oa2, Cb, delta_8_OC, C8_OC)
-//           + xC8_t<T>(Ob1, Ca, delta_8_OC, C8_OC)
-//           + xC8_t<T>(Ob2, Ca, delta_8_OC, C8_OC);
-    
-//     const T CC_C8 =
-//             xC8_t<T>(Ca, Cb, delta_8_CC, C8_CC);
-
-//     return (OO_exp + OC_exp + CC_exp
-//           + OO_QQ  + OC_QQ  + CC_QQ
-//           + OM_QQ  + CM_QQ  + MM_QQ
-//           - OO_C6  - OC_C6  - CC_C6
-//           - OO_C8  - OC_C8  - CC_C8);
-// }
-
-// // Original function for backward compatibility
-// double sapt_s(const double* crd) 
-// {
-//     return sapt_s_t<double>(crd);
-// }
 
 //-----------------------------------------------------------------------------
 // Explicit template instantiations
@@ -476,10 +340,24 @@ template autodiff::var      x2b::xC8_t<autodiff::var>     (const autodiff::var*,
 template autodiff::real     x2b::sapt_s_t<autodiff::real>    (const autodiff::real*);
 template autodiff::real2nd  x2b::sapt_s_t<autodiff::real2nd>(const autodiff::real2nd*);
 template autodiff::dual2nd  x2b::sapt_s_t<autodiff::dual2nd>(const autodiff::dual2nd*);
-template autodiff::var      x2b::sapt_s_t<autodiff::var>    (const autodiff::var*);
+template autodiff::var      x2b::sapt_s_t<autodiff::var>     (const autodiff::var*);
 
-// force an out‐of‐line double sapt_s()
-template double sapt_s_t<double>(const double*);
+// sapt_s (full)
+template double             x2b::sapt_s_t<double>            (const double*);
+
+// sapt_sr (exponential only)
+template autodiff::real     x2b::sapt_sr_t<autodiff::real>    (const autodiff::real*);
+template autodiff::real2nd  x2b::sapt_sr_t<autodiff::real2nd> (const autodiff::real2nd*);
+template autodiff::dual2nd  x2b::sapt_sr_t<autodiff::dual2nd> (const autodiff::dual2nd*);
+template autodiff::var      x2b::sapt_sr_t<autodiff::var>     (const autodiff::var*);
+template double             x2b::sapt_sr_t<double>            (const double*);
+
+// sapt_lr (QQ + C6 + C8 only)
+template autodiff::real     x2b::sapt_lr_t<autodiff::real>    (const autodiff::real*);
+template autodiff::real2nd  x2b::sapt_lr_t<autodiff::real2nd> (const autodiff::real2nd*);
+template autodiff::dual2nd  x2b::sapt_lr_t<autodiff::dual2nd> (const autodiff::dual2nd*);
+template autodiff::var      x2b::sapt_lr_t<autodiff::var>     (const autodiff::var*);
+template double             x2b::sapt_lr_t<double>            (const double*);
 
 } // namespace x2b
 

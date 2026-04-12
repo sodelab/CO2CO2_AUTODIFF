@@ -68,7 +68,7 @@ inline double var_inter(const double& d0, const double& k, const double& d)
 }
 
 // Original function declarations for backward compatibility
-double sapt_s(const double* crd);
+//double sapt_s(const double* crd);
 double f_switch(const double* xyz);
 
 void cart_to_vars_fourth(const double* xyz, double* v, double& s);
@@ -76,9 +76,21 @@ double value_fourth(const double* xyz);
 void cart_to_vars_fifth(const double* xyz, double* v, double& s);
 double value_fifth(const double* xyz);
 
+double sapt_s(const double* crd);
+template<typename T> T sapt_s_t(const T* crd);
+
+// SHORT-RANGE: exponential repulsion only
+double sapt_sr(const double* crd);
+template<typename T> T sapt_sr_t(const T* crd);
+
+// LONG-RANGE: QQ + C6 + C8 only
+double sapt_lr(const double* crd);
+template<typename T> T sapt_lr_t(const T* crd);
+
+
 // Templated versions for autodiff support
-template<typename T>
-T sapt_s_t(const T* crd);
+//template<typename T>
+//T sapt_s_t(const T* crd);
 
 template<typename T>
 T f_switch_t(const T* xyz);
@@ -97,6 +109,8 @@ T value_fifth_t(const T* xyz);
 
 // Explicitly tell the compiler about the autodiff versions
 extern template autodiff::real sapt_s_t<autodiff::real>(const autodiff::real* crd);
+extern template autodiff::real sapt_sr_t<autodiff::real>(const autodiff::real* crd);
+extern template autodiff::real sapt_lr_t<autodiff::real>(const autodiff::real* crd);
 extern template autodiff::real f_switch_t<autodiff::real>(const autodiff::real* xyz);
 extern template void cart_to_vars_fourth_t<autodiff::real>(const autodiff::real* xyz, autodiff::real* v, autodiff::real& s);
 extern template void cart_to_vars_fifth_t<autodiff::real>(const autodiff::real* xyz, autodiff::real* v, autodiff::real& s);

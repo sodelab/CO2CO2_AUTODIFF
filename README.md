@@ -151,7 +151,7 @@ The benchmark compares computed results to hard-coded reference values (with uni
 ## Supported Platforms
 
 | Platform | Architecture          | Wheel Available      |
-|----------|-----------------------|--------------------- |
+|----------|-----------------------|----------------------|
 | Linux    | x86_64                | Yes                  |
 | macOS    | arm64 (Apple Silicon) | Yes                  |
 | macOS    | x86_64 (Intel)        | Build from source    |

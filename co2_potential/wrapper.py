@@ -238,6 +238,96 @@ p2b_gradient = p2b_gradient_5
 p2b_hessian_rev = p2b_hessian_5_rev
 p2b_hessian_fwd = p2b_hessian_5_fwd
 
+# ---- SAPT-SR: short-range (exponential only) energy, gradient, hessian ----
+
+lib.sapt_sr.argtypes = [ctypes.POINTER(ctypes.c_double)]
+lib.sapt_sr.restype = ctypes.c_double
+
+lib.sapt_sr_gradient.argtypes = [ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double)]
+lib.sapt_sr_gradient.restype = None
+
+lib.sapt_sr_hessian_rev.argtypes = [ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double)]
+lib.sapt_sr_hessian_rev.restype = None
+
+lib.sapt_sr_hessian_fwd.argtypes = [ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double)]
+lib.sapt_sr_hessian_fwd.restype = None
+
+def sapt_sr(xyz):
+    arr = np.ascontiguousarray(xyz, dtype=np.double)
+    return lib.sapt_sr(arr.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
+
+def sapt_sr_gradient(xyz):
+    arr = np.ascontiguousarray(xyz, dtype=np.double)
+    grad = np.zeros(18, dtype=np.double)
+    lib.sapt_sr_gradient(
+        arr.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        grad.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+    )
+    return grad
+
+def sapt_sr_hessian_rev(xyz):
+    arr = np.ascontiguousarray(xyz, dtype=np.double)
+    hess = np.zeros(18*18, dtype=np.double)
+    lib.sapt_sr_hessian_rev(
+        arr.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        hess.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+    )
+    return hess.reshape(18, 18)
+
+def sapt_sr_hessian_fwd(xyz):
+    arr = np.ascontiguousarray(xyz, dtype=np.double)
+    hess = np.zeros(18*18, dtype=np.double)
+    lib.sapt_sr_hessian_fwd(
+        arr.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        hess.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+    )
+    return hess.reshape(18, 18)
+
+# ---- SAPT-LR: long-range (QQ + C6 + C8) energy, gradient, hessian ----
+
+lib.sapt_lr.argtypes = [ctypes.POINTER(ctypes.c_double)]
+lib.sapt_lr.restype = ctypes.c_double
+
+lib.sapt_lr_gradient.argtypes = [ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double)]
+lib.sapt_lr_gradient.restype = None
+
+lib.sapt_lr_hessian_rev.argtypes = [ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double)]
+lib.sapt_lr_hessian_rev.restype = None
+
+lib.sapt_lr_hessian_fwd.argtypes = [ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double)]
+lib.sapt_lr_hessian_fwd.restype = None
+
+def sapt_lr(xyz):
+    arr = np.ascontiguousarray(xyz, dtype=np.double)
+    return lib.sapt_lr(arr.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
+
+def sapt_lr_gradient(xyz):
+    arr = np.ascontiguousarray(xyz, dtype=np.double)
+    grad = np.zeros(18, dtype=np.double)
+    lib.sapt_lr_gradient(
+        arr.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        grad.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+    )
+    return grad
+
+def sapt_lr_hessian_rev(xyz):
+    arr = np.ascontiguousarray(xyz, dtype=np.double)
+    hess = np.zeros(18*18, dtype=np.double)
+    lib.sapt_lr_hessian_rev(
+        arr.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        hess.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+    )
+    return hess.reshape(18, 18)
+
+def sapt_lr_hessian_fwd(xyz):
+    arr = np.ascontiguousarray(xyz, dtype=np.double)
+    hess = np.zeros(18*18, dtype=np.double)
+    lib.sapt_lr_hessian_fwd(
+        arr.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        hess.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+    )
+    return hess.reshape(18, 18)
+
 # Example usage
 if __name__ == "__main__":
     # Example: dimer geometry
@@ -251,5 +341,8 @@ if __name__ == "__main__":
     ], dtype=np.double)
     print("p2b_5 energy:", p2b_5(xyz))
     print("SAPT-S energy:", sapt(xyz))
+    print("SAPT-SR energy:  ", sapt_sr(xyz))
+    print("SAPT-LR energy:  ", sapt_lr(xyz))
+    print("SR + LR == SAPT: ", abs(sapt_sr(xyz) + sapt_lr(xyz) - sapt(xyz)) < 1e-10)
     print("p2b_5 gradient:", p2b_gradient_5(xyz))
     print("p2b_5 Hessian:", p2b_hessian_5_fwd(xyz))

@@ -22,6 +22,17 @@ using autodiff::VectorXdual;
 using autodiff::MatrixXdual;
 using autodiff::VectorXvar;
 
+// -----------------------------------------------------------------------------
+// SAPT short-range and long-range (to be implemented in x2b.h)
+// -----------------------------------------------------------------------------
+// Uncomment these once you have the functions in x2b namespace:
+// namespace x2b {
+//     double sapt_sr(double *X);
+//     double sapt_lr(double *X);
+//     template<typename T> T sapt_sr_t(T *X);
+//     template<typename T> T sapt_lr_t(T *X);
+// }
+
 // Physical constants (CODATA 2010)
 static constexpr double Eh_J      = 4.35974434e-18;
 static constexpr double Na        = 6.02214129e+23;
@@ -77,7 +88,7 @@ DLLEXPORT int get_sapt_dim()  { return 18; }
 
 // Library version
 DLLEXPORT const char* get_version() {
-    return "CO2CO2_AUTODIFF 0.4.5 (2026-03-02)";
+    return "CO2CO2_AUTODIFF 0.5.0 (2026-04-11)";
 }
 
 } // extern "C"
@@ -106,6 +117,16 @@ DLLEXPORT double p1b(double *X) {
 // SAPT-S term in kcal/mol
 DLLEXPORT double sapt(double *X) {
     return x2b::sapt_s(X);
+}
+
+// SAPT short-range term in kcal/mol
+DLLEXPORT double sapt_sr(double *X) {
+    return x2b::sapt_sr(X);
+}
+
+// SAPT long-range term in kcal/mol
+DLLEXPORT double sapt_lr(double *X) {
+    return x2b::sapt_lr(X);
 }
 
 } // extern "C"
@@ -154,6 +175,28 @@ DLLEXPORT void sapt_gradient(double *X, double *grad) {
     auto f = [](const ArrayXreal& x) -> real {
         real c[18]; for(int i=0;i<18;++i) c[i]=x[i];
         return x2b::sapt_s_t(c);
+    };
+    ArrayXreal x(18); for(int i=0;i<18;++i) x[i]=X[i];
+    ArrayXreal g = autodiff::gradient(f, wrt(x), autodiff::at(x));
+    for(int i=0;i<18;++i) grad[i] = g[i].val();
+}
+
+// SAPT short-range gradient (18 → 18)
+DLLEXPORT void sapt_sr_gradient(double *X, double *grad) {
+    auto f = [](const ArrayXreal& x) -> real {
+        real c[18]; for(int i=0;i<18;++i) c[i]=x[i];
+        return x2b::sapt_sr_t(c);
+    };
+    ArrayXreal x(18); for(int i=0;i<18;++i) x[i]=X[i];
+    ArrayXreal g = autodiff::gradient(f, wrt(x), autodiff::at(x));
+    for(int i=0;i<18;++i) grad[i] = g[i].val();
+}
+
+// SAPT long-range gradient (18 → 18)
+DLLEXPORT void sapt_lr_gradient(double *X, double *grad) {
+    auto f = [](const ArrayXreal& x) -> real {
+        real c[18]; for(int i=0;i<18;++i) c[i]=x[i];
+        return x2b::sapt_lr_t(c);
     };
     ArrayXreal x(18); for(int i=0;i<18;++i) x[i]=X[i];
     ArrayXreal g = autodiff::gradient(f, wrt(x), autodiff::at(x));
@@ -215,6 +258,28 @@ DLLEXPORT void sapt_hessian_rev(double *X, double *hess) {
     for(int i=0;i<18;++i) for(int j=0;j<18;++j) hess[i*18+j]=H(i,j);
 }
 
+// SAPT short-range Hessian via reverse‐mode
+DLLEXPORT void sapt_sr_hessian_rev(double *X, double *hess) {
+    VectorXvar x(18); for(int i=0;i<18;++i) x[i]=X[i];
+    var u = [&](auto const& v)->var {
+        var c[18]; for(int i=0;i<18;++i) c[i]=v[i];
+        return x2b::sapt_sr_t(c);
+    }(x);
+    Eigen::VectorXd g; Eigen::MatrixXd H = autodiff::hessian(u, x, g);
+    for(int i=0;i<18;++i) for(int j=0;j<18;++j) hess[i*18+j]=H(i,j);
+}
+
+// SAPT long-range Hessian via reverse‐mode
+DLLEXPORT void sapt_lr_hessian_rev(double *X, double *hess) {
+    VectorXvar x(18); for(int i=0;i<18;++i) x[i]=X[i];
+    var u = [&](auto const& v)->var {
+        var c[18]; for(int i=0;i<18;++i) c[i]=v[i];
+        return x2b::sapt_lr_t(c);
+    }(x);
+    Eigen::VectorXd g; Eigen::MatrixXd H = autodiff::hessian(u, x, g);
+    for(int i=0;i<18;++i) for(int j=0;j<18;++j) hess[i*18+j]=H(i,j);
+}
+
 } // extern "C"
 
 // -----------------------------------------------------------------------------
@@ -265,6 +330,30 @@ DLLEXPORT void sapt_hessian_fwd(double *X, double *hess) {
     auto f = [&](auto const& v)->Eigen::dual2nd {
         Eigen::dual2nd c[18]; for(int i=0;i<18;++i) c[i]=v[i];
         return x2b::sapt_s_t(c);
+    };
+    Eigen::dual2nd u; VectorXdual g; 
+    Eigen::MatrixXd H = autodiff::hessian(f, wrt(x), autodiff::at(x), u, g);
+    for(int i=0;i<18;++i) for(int j=0;j<18;++j) hess[i*18+j]=H(i,j);
+}
+
+// SAPT short-range Hessian via forward‐mode dual2nd
+DLLEXPORT void sapt_sr_hessian_fwd(double *X, double *hess) {
+    Eigen::VectorXdual2nd x(18); for(int i=0;i<18;++i) x[i]=X[i];
+    auto f = [&](auto const& v)->Eigen::dual2nd {
+        Eigen::dual2nd c[18]; for(int i=0;i<18;++i) c[i]=v[i];
+        return x2b::sapt_sr_t(c);
+    };
+    Eigen::dual2nd u; VectorXdual g; 
+    Eigen::MatrixXd H = autodiff::hessian(f, wrt(x), autodiff::at(x), u, g);
+    for(int i=0;i<18;++i) for(int j=0;j<18;++j) hess[i*18+j]=H(i,j);
+}
+
+// SAPT long-range Hessian via forward‐mode dual2nd
+DLLEXPORT void sapt_lr_hessian_fwd(double *X, double *hess) {
+    Eigen::VectorXdual2nd x(18); for(int i=0;i<18;++i) x[i]=X[i];
+    auto f = [&](auto const& v)->Eigen::dual2nd {
+        Eigen::dual2nd c[18]; for(int i=0;i<18;++i) c[i]=v[i];
+        return x2b::sapt_lr_t(c);
     };
     Eigen::dual2nd u; VectorXdual g; 
     Eigen::MatrixXd H = autodiff::hessian(f, wrt(x), autodiff::at(x), u, g);
