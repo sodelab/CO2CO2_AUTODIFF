@@ -39,11 +39,20 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install dependencies
-        run: pip install setuptools wheel numpy
+        run: pip install setuptools wheel numpy build
       - name: Build shared library
         run: cd src && make clean && make OPT=-O1
+      - name: Verify dylib architecture
+        run: file co2_potential/libCO2CO2.dylib    # should say arm64
       - name: Build wheel
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "14.0"
+          ARCHFLAGS: "-arch arm64"
         run: pip wheel . --no-deps -w wheelhouse
+      - name: Verify wheel
+        run: |
+          ls wheelhouse/
+          python -c "import zipfile, sys; z=zipfile.ZipFile('$(ls wheelhouse/*.whl)'); print('\n'.join(z.namelist()))"
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-macos-arm64
