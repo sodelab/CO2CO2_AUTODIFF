@@ -6,19 +6,22 @@ import numpy as np
 # Find the shared library in the same directory as this file
 _pkg_dir = os.path.dirname(__file__)
 
-# Try multiple library names for cross-platform support
-_lib_names = ["libCO2CO2.so", "libCO2CO2.dylib"]
-lib = None
-for _name in _lib_names:
-    _path = os.path.join(_pkg_dir, _name)
-    if os.path.exists(_path):
-        lib = ctypes.CDLL(_path)
-        break
+# --- Platform-aware library loading ---
+if sys.platform == "darwin":
+    _lib_name = "libCO2CO2.dylib"
+# elif sys.platform == "win32":
+#     _lib_name = "CO2CO2.dll"  # Assuming this is the name for Windows
+else:  # Linux and other Unix-like OS
+    _lib_name = "libCO2CO2.so"
 
-if lib is None:
+_path = os.path.join(_pkg_dir, _lib_name)
+
+try:
+    lib = ctypes.CDLL(_path)
+except OSError:
     raise ImportError(
-        f"Could not find shared library in {_pkg_dir}. "
-        f"Looked for: {_lib_names}. "
+        f"Could not load shared library: {_path}. "
+        f"File may be missing or incompatible with the architecture. "
         f"Platform: {sys.platform}, arch: {os.uname().machine}"
     )
 
