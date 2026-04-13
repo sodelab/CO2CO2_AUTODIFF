@@ -15,6 +15,7 @@ UNAME_M := $(shell uname -m)
 
 ifeq ($(UNAME_S),Darwin)
     LDFLAGS += -dynamiclib
+    TARGET = libCO2CO2.dylib
     # Only build universal binary if UNIVERSAL=1 is set (for local builds)
     ifeq ($(UNIVERSAL),1)
         CXXFLAGS += -arch x86_64 -arch arm64
@@ -22,6 +23,7 @@ ifeq ($(UNAME_S),Darwin)
     endif
 else
     LDFLAGS += -shared
+    TARGET = libCO2CO2.so
 endif
 
 # Include paths
@@ -34,7 +36,6 @@ endif
 
 SRCS = mbCO2CO2.cpp poly-1b.cpp poly-2b.cpp x1b.cpp x2b.cpp sapt-s.cpp
 OBJS = $(SRCS:.cpp=.o)
-TARGET = libCO2CO2.so
 
 all: $(TARGET)
 	cp $(TARGET) ../co2_potential/$(TARGET)

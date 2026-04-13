@@ -22,7 +22,8 @@ jobs:
         env:
           CIBW_BUILD: "cp311-*"
           CIBW_ARCHS: "x86_64"
-          CIBW_BEFORE_BUILD: "cd src && make clean && make OPT=-O2"
+          #CIBW_BEFORE_BUILD: "cd src && make clean && make OPT=-O2"
+          CIBW_BEFORE_BUILD: "cd src && make clean && make OPT=-O0"
         run: python -m cibuildwheel --output-dir wheelhouse
       - uses: actions/upload-artifact@v4
         with:
@@ -41,7 +42,8 @@ jobs:
       - name: Install dependencies
         run: pip install setuptools wheel numpy build
       - name: Build shared library
-        run: cd src && make clean && make OPT=-O1
+        #run: cd src && make clean && make OPT=-O0
+        run: cd src && make clean && make OPT=-O0
       - name: Verify dylib architecture
         run: file co2_potential/libCO2CO2.dylib    # should say arm64
       - name: Build wheel
