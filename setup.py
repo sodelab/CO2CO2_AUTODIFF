@@ -2,7 +2,8 @@ import os
 import sys
 import subprocess
 import shutil
-from setuptools import setup, find_packages, Command
+from setuptools import setup, find_packages
+from setuptools.command.build_ext import build_ext  # Import the real build_ext
 from setuptools.dist import Distribution
 
 # --- Platform-aware library name ---
@@ -11,21 +12,15 @@ if sys.platform == "darwin":
 else:
     LIB_NAME = "libCO2CO2.so"
 
-class MakeBuild(Command):
-    description = "Build the C++ shared library using Makefile"
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
+# Inherit from the real build_ext command
+class MakeBuild(build_ext):
     def run(self):
         # This command is now primarily for local development builds.
         # The CI/CD pipeline uses cibuildwheel's `before-build` hook instead.
         print("--- Building C++ shared library ---")
         src_dir = os.path.join(os.path.dirname(__file__), "src")
+        
+        # Run make
         subprocess.check_call(["make", "clean"], cwd=src_dir)
         subprocess.check_call(["make"], cwd=src_dir)
 
@@ -40,7 +35,9 @@ class MakeBuild(Command):
         else:
             # This check is important for CI/CD where the file might already be in place
             print(f"--- Library {src_lib_path} not found, assuming it's already in package dir ---")
-
+        
+        # It's important to call the superclass's run method
+        super().run()
 
 class BinaryDistribution(Distribution):
     """Force platform-specific distribution."""
