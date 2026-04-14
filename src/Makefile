@@ -34,8 +34,7 @@ ifneq ($(CONDA_PREFIX),)
     INCLUDES += -I$(CONDA_PREFIX)/include -I$(CONDA_PREFIX)/include/eigen3
 endif
 
-#SRCS = mbCO2CO2.cpp poly-1b.cpp poly-2b.cpp x1b.cpp x2b.cpp sapt-s.cpp
-SRCS = mbCO2CO2.cpp poly-1b.cpp x1b.cpp
+SRCS = mbCO2CO2.cpp poly-1b.cpp poly-2b.cpp x1b.cpp x2b.cpp sapt-s.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(TARGET)
