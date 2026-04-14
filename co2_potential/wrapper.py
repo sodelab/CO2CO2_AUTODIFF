@@ -32,7 +32,7 @@ except OSError:
 # lib.get_p2b_4_dim.restype = ctypes.c_int
 # lib.get_p2b_5_dim.restype = ctypes.c_int
 # lib.get_sapt_dim.restype = ctypes.c_int
-lib.get_version.restype = ctypes.c_char_p
+#lib.get_version.restype = ctypes.c_char_p
 
 # def get_p1b_dim():
 #     return lib.get_p1b_dim()
