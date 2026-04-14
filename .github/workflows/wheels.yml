@@ -31,7 +31,7 @@ jobs:
 
   build_macos_x86_64:
     name: Build macOS x86_64 wheel
-    runs-on: macos-12 # This runner is Intel-based
+    runs-on: macos-15-intel
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
