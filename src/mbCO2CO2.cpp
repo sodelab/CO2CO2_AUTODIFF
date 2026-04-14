@@ -360,4 +360,4 @@ DLLEXPORT int getN() { return 6; }
 //     for(int i=0;i<18;++i) for(int j=0;j<18;++j) hess[i*18+j]=H(i,j);
 // }
 
-// } // extern "C"
+} // extern "C"
