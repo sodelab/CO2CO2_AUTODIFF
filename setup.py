@@ -30,6 +30,8 @@ class MakeBuild(build_ext):
         os.makedirs(build_pkg_dir, exist_ok=True)
         src_lib_path = os.path.join(src_dir, LIB_NAME)
         dest_lib_path = os.path.join(pkg_dir, LIB_NAME)
+        dest_lib_path = os.path.join(build_pkg_dir, LIB_NAME)
+
 
         if os.path.exists(src_lib_path):
             print(f"--- Copying {src_lib_path} to {dest_lib_path} ---")
