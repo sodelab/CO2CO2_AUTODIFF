@@ -6,8 +6,7 @@
 2B = mbCO2CO2
 
 CXX = c++
-#OPT ?= -O2
-OPT ?= -O0
+OPT ?= -O2
 CXXFLAGS = $(OPT) -fPIC -std=c++17
 
 # Detect OS
