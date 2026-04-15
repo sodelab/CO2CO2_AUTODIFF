@@ -26,6 +26,8 @@ class MakeBuild(build_ext):
 
         # Copy the built library into the package folder so it's included in the wheel
         pkg_dir = os.path.join(os.path.dirname(__file__), "co2_potential")
+        build_pkg_dir = os.path.join(self.build_lib, "co2_potential")
+        os.makedirs(build_pkg_dir, exist_ok=True)
         src_lib_path = os.path.join(src_dir, LIB_NAME)
         dest_lib_path = os.path.join(pkg_dir, LIB_NAME)
 
@@ -49,7 +51,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="co2_potential",
-    version="0.6.4",
+    version="0.6.5",
     author="Olaseni Sode",
     license="MIT",
     author_email="osode@calstatela.edu",
@@ -59,6 +61,7 @@ setup(
     packages=find_packages(),
     # Use include_package_data and MANIFEST.in to grab the library
     include_package_data=True,
+    package_data={"co2_potential": ["*.so", "*.dylib"]},
     # This tells setuptools that the wheel is not pure Python
     distclass=BinaryDistribution,
     # This custom command is mostly for `pip install -e .`
