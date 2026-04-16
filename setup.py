@@ -5,6 +5,7 @@ import shutil
 from setuptools import setup, find_packages
 from setuptools.command.build_ext import build_ext  # Import the real build_ext
 from setuptools.dist import Distribution
+import platform
 
 # --- Platform-aware library name ---
 if sys.platform == "darwin":
@@ -15,14 +16,17 @@ else:
 # Inherit from the real build_ext command
 class MakeBuild(build_ext):
     def run(self):
-        # This command is now primarily for local development builds.
-        # The CI/CD pipeline uses cibuildwheel's `before-build` hook instead.
         print("--- Building C++ shared library ---")
         src_dir = os.path.join(os.path.dirname(__file__), "src")
+
+        if sys.platform == "darwin" and platform.machine() == "x86_64":
+            opt = "-O1"
+        else:
+            opt = "-O2"
         
         # Run make
         subprocess.check_call(["make", "clean"], cwd=src_dir)
-        subprocess.check_call(["make"], cwd=src_dir)
+        subprocess.check_call(["make", f"OPT={opt}"], cwd=src_dir)
 
         # Copy the built library into the package folder so it's included in the wheel
         pkg_dir = os.path.join(os.path.dirname(__file__), "co2_potential")
