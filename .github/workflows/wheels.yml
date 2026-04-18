@@ -20,7 +20,7 @@ jobs:
         run: python -m pip install -U pip cibuildwheel
       - name: Build wheels
         env:
-          #CIBW_BUILD: "cp311-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
           CIBW_ARCHS: "x86_64"
         run: python -m cibuildwheel --output-dir wheelhouse
       - uses: actions/upload-artifact@v4
@@ -41,7 +41,7 @@ jobs:
         run: python -m pip install -U pip cibuildwheel
       - name: Build wheels
         env:
-          #CIBW_BUILD: "cp311-*"
+          CIBW_BUILD: "cp39-* cp311-*"
           CIBW_ARCHS: "x86_64"
           MACOSX_DEPLOYMENT_TARGET: "10.9"
         run: python -m cibuildwheel --output-dir wheelhouse
